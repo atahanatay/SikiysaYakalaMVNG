@@ -29,12 +29,15 @@ public class GameUI extends JFrame {
 
     private void createDialog(String title, String filename) {
         try {
-            JEditorPane editorPane = new JEditorPane(getClass().getResource(filename));
+            JTextPane editorPane = new JTextPane();
             JScrollPane pane = new JScrollPane(editorPane);
             JDialog dialog = new JDialog((Frame) null);
-            editorPane.setContentType("text/html");
+
+            editorPane.setPage(getClass().getResource(filename));
             editorPane.setEditable(false);
+
             pane.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5), BorderFactory.createEtchedBorder()));
+
             dialog.add(pane);
             dialog.setTitle(title);
             dialog.setVisible(true);

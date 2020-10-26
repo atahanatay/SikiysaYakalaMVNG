@@ -116,9 +116,7 @@ public class GamePanel extends JPanel {
     }
 
     void removeSelected() {
-        for (Component component : getComponents()) {
-            if (component instanceof Cube) ((Cube) component).selected = false;
-        }
+        Arrays.stream(getComponents()).filter(c -> c instanceof Cube).forEach(c -> ((Cube) c).selected = false);
 
         Cube.removeGreens();
     }
@@ -126,9 +124,7 @@ public class GamePanel extends JPanel {
     void setTurn(int turn) {
         this.turn = turn;
 
-        for (Component component : getComponents()) {
-            if (component instanceof Cube) ((Cube) component).selectable = 0;
-        }
+        Arrays.stream(getComponents()).filter(c -> c instanceof Cube).forEach(c -> ((Cube) c).selectable = 0);
 
         if (turn == 0 && (status != Main.MP || _team == 0)) {
             redCube.selectable = 1;
@@ -141,19 +137,21 @@ public class GamePanel extends JPanel {
 
         repaint();
     }
-
+    
     int nextTurn() {
         return (blackRepeat == waitingFor) ? 2 : ((turn == 0) ? 1 : 0);
     }
 
     Cube getCube(Grids g) {
-        for (Component component : getComponents()) {
-            if (component instanceof Cube && Grids.isEqual(g, ((Cube) component).g)) {
-                return (Cube) component;
-            }
-        }
+        System.out.println((Cube) Arrays.stream(getComponents())
+                .filter(c -> c instanceof Cube && Grids.isEqual(g, ((Cube) c).g))
+                .findFirst()
+                .orElse(null));
 
-        return null;
+        return (Cube) Arrays.stream(getComponents())
+                .filter(c -> c instanceof Cube && Grids.isEqual(g, ((Cube) c).g))
+                .findFirst()
+                .orElse(null);
     }
 
     @Override

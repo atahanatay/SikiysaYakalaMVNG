@@ -7,6 +7,7 @@ public class MenuUI extends JFrame {
     JButton sp = new JButton("Tek Bilgisayar");
     JButton mp = new JButton("Çok Bilgisayar");
     JButton exit = new JButton("Çıkış");
+    JToggleButton darkMode = new JToggleButton("Karanlık Mod");
 
     MenuUI(String title) {
         super(title);
@@ -24,23 +25,32 @@ public class MenuUI extends JFrame {
         c.weighty = 1;
         add(logo, c);
         c.weighty = 0;
+        c.insets = new Insets(0, 5, 5, 5);
+
         c.gridy = 1;
         add(sp, c);
         c.gridy = 2;
         add(mp, c);
         c.gridy = 3;
         add(exit, c);
+        c.gridy = 4;
+        add(darkMode, c);
 
         Dimension d = new Dimension(150, 30);
         sp.setPreferredSize(d);
         mp.setPreferredSize(d);
         exit.setPreferredSize(d);
+        darkMode.setPreferredSize(d);
 
         setPreferredSize(new Dimension(500, 300));
 
         exit.addActionListener(e -> System.exit(0));
         sp.addActionListener(e -> Main.startGame(Main.SP));
         mp.addActionListener(e -> Main.startGame(Main.MP));
+
+        darkMode.addActionListener(e -> {
+            Main.darkMode = darkMode.isSelected();
+        });
 
         pack();
     }

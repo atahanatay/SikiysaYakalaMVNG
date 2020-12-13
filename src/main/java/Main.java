@@ -8,6 +8,8 @@ public class Main {
     static MenuUI menuUI;
     static GameUI active;
 
+    static boolean darkMode;
+
     public static void main(String[] args) {
         //creating the menu
 

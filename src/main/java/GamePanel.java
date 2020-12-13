@@ -6,9 +6,13 @@ import java.awt.event.KeyListener;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class GamePanel extends JPanel {
     List<String> keys = new ArrayList<>();
+    List<Circle> circles = new ArrayList<>();
+
     int status;
     JFrame host;
     boolean labelsCreated = false;
@@ -18,10 +22,12 @@ public class GamePanel extends JPanel {
     RedCube redCube = new RedCube(new Grids(2, 3));
     BlueCube blueCube = new BlueCube(new Grids(4, 3));
 
-    int blackRepeat = 0, waitingFor = 3;
+    int blackRepeat = 0, waitingFor = 5;
     int _team;
 
-    Circle c1 = new Circle(), c2 = new Circle(), c3 = new Circle(), c4 = new Circle();
+    static int win = 0;
+
+    Circle c1 = new Circle(1, 1), c2 = new Circle(5, 1), c3 = new Circle(1, 5), c4 = new Circle(5, 5);
 
     KeyAdapter keyAdapter = new KeyAdapter() {
         @Override
@@ -49,8 +55,8 @@ public class GamePanel extends JPanel {
                     c.greenSelect();
                     keys.add("-");
                 } else {
+                    keys.remove(2);
                     keys.remove(3);
-                    keys.remove(4);
                 }
             } else if (Character.toString(e.getKeyChar()).matches("[1-5]")) {
                 keys.clear();
@@ -63,7 +69,39 @@ public class GamePanel extends JPanel {
         }
     };
 
+    void winColor() {
+        new Thread(() -> {
+            while (Main.active.isVisible()) {
+                try {
+                    Cube.winColor = Color.YELLOW;
+                    repaint();
+                    TimeUnit.MILLISECONDS.sleep(500);
+
+                    Cube.winColor = Color.GREEN;
+                    repaint();
+                    TimeUnit.MILLISECONDS.sleep(500);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
+    }
+
+    void checkForWins() {
+        if (!redCube.checkAround()) {
+            win = 1;
+            setTurn(4);
+            winColor();
+        } else if (circles.stream().filter(c -> c.isOpen).count() >= 3) {
+            win = 2;
+            setTurn(4);
+            winColor();
+        }
+    }
+
     GamePanel(int status, JFrame host) {
+        if (Main.darkMode) setBackground(Color.black);
+
         this.status = status;
         this.host = host;
 
@@ -88,14 +126,16 @@ public class GamePanel extends JPanel {
 
         info.setOpaque(true);
         info.setBackground(getBackground());
-        info.setForeground(Color.RED);
+        info.setForeground(Main.darkMode ? Color.decode("#910000") : Color.RED);
 
         setTurn(turn);
 
-        add(c1);
-        add(c2);
-        add(c3);
-        add(c4);
+        circles.add(c1);
+        circles.add(c2);
+        circles.add(c3);
+        circles.add(c4);
+
+        for (Circle c : circles) add(c);
 
         refreshText();
     }
@@ -110,9 +150,11 @@ public class GamePanel extends JPanel {
         if (keys.size() > 2) text += " -> ";
         if (keys.size() > 3) text += keys.get(3) + "x";
         if (keys.size() > 4) text += keys.get(4);
-        if (keys.size() > 5) text += " *";
+        if (keys.size() > 5) text += "*";
 
-        info.setText(text);
+        if (keys.size() == 3) text += " ... ";
+
+        info.setText(text + " - " + blackRepeat + "/" + waitingFor);
     }
 
     void removeSelected() {
@@ -137,17 +179,12 @@ public class GamePanel extends JPanel {
 
         repaint();
     }
-    
+
     int nextTurn() {
-        return (blackRepeat == waitingFor) ? 2 : ((turn == 0) ? 1 : 0);
+        return (blackRepeat == waitingFor) ? 2 : ((turn == 1) ? 0 : 1);
     }
 
     Cube getCube(Grids g) {
-        System.out.println((Cube) Arrays.stream(getComponents())
-                .filter(c -> c instanceof Cube && Grids.isEqual(g, ((Cube) c).g))
-                .findFirst()
-                .orElse(null));
-
         return (Cube) Arrays.stream(getComponents())
                 .filter(c -> c instanceof Cube && Grids.isEqual(g, ((Cube) c).g))
                 .findFirst()
@@ -165,6 +202,8 @@ public class GamePanel extends JPanel {
         c2.setLocation(getWidth() - c2.getWidth() - 5, 5 + 25);
         c3.setLocation(5, getHeight() - c3.getHeight() - 5);
         c4.setLocation(getWidth() - c4.getWidth() - 5, getHeight() - c4.getHeight() - 5);
+
+        if (Main.darkMode) g.setColor(Color.LIGHT_GRAY);
 
         for (int i = 1; i <= 4; i++) {
             g.drawLine(i * w, 25, i * w, getHeight());

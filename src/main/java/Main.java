@@ -1,4 +1,6 @@
 import javax.swing.*;
+import javax.swing.plaf.ColorUIResource;
+import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
@@ -9,6 +11,13 @@ public class Main {
     static GameUI active;
 
     static boolean darkMode;
+
+    public static final Color darkerBlue = Color.decode("#000091");
+    public static final Color darkerRed = Color.decode("#910000");
+    public static final Color darkerGreen = Color.decode("#009100");
+    public static final Color darkerOrange = Color.decode("#00918c");
+    public static final Color darkerYellow = Color.YELLOW.darker();
+
 
     public static void main(String[] args) {
         //creating the menu

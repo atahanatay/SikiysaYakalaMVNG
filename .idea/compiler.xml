@@ -7,6 +7,7 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <module name="Sıkıysa Yakala MVN" />
+        <module name="SikiysaYakalaMVNG" />
       </profile>
     </annotationProcessing>
   </component>

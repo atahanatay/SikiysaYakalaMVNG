@@ -6,26 +6,29 @@ import java.awt.event.KeyListener;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
 public class GamePanel extends JPanel {
+    static int win = 0;
     List<String> keys = new ArrayList<>();
     List<Circle> circles = new ArrayList<>();
-
-    int status;
     JFrame host;
-    boolean labelsCreated = false;
     JLabel info = new JLabel("", SwingConstants.CENTER);
-    int w, h;
-    int turn = 0;
     RedCube redCube = new RedCube(new Grids(2, 3));
     BlueCube blueCube = new BlueCube(new Grids(4, 3));
-
-    int blackRepeat = 0, waitingFor = 5;
+    boolean labelsCreated = false;
+    int status;
+    int w, h;
+    int turn = 0;
+    int blackRepeat = 0, waitingFor = 5, yellowRepeat = 0, yWaitingFor = 5;
     int _team;
+    boolean isRedYellow = false;
+    boolean canGoBlue = false;
 
-    static int win = 0;
+    int p1t = 300, p2t = 300;
+    boolean timeStarted;
+
+    Grids redOldPos;
 
     Circle c1 = new Circle(1, 1), c2 = new Circle(5, 1), c3 = new Circle(1, 5), c4 = new Circle(5, 5);
 
@@ -35,8 +38,6 @@ public class GamePanel extends JPanel {
             if (keys.size() < 5) {
                 if (Character.toString(e.getKeyChar()).matches("[1-5]") && keys.size() != 2) {
                     keys.add(Character.toString(e.getKeyChar()));
-                } else if (e.getKeyCode() == KeyEvent.VK_BACK_SPACE && keys.size() > 0) {
-                    keys.remove(keys.size() - 1);
                 } else if (e.getKeyCode() == KeyEvent.VK_ENTER && keys.size() == 2) {
                     Cube c = getCube(new Grids(Integer.parseInt(keys.get(0)), Integer.parseInt(keys.get(1))));
 
@@ -54,52 +55,32 @@ public class GamePanel extends JPanel {
                 if (c instanceof GreenCube) {
                     c.greenSelect();
                     keys.add("-");
+                } else if (redCube.selected && c instanceof BlueCube) {
+                    Main.active.panel.isRedYellow = true;
+                    Main.active.panel.repaint();
                 } else {
                     keys.remove(2);
                     keys.remove(3);
                 }
-            } else if (Character.toString(e.getKeyChar()).matches("[1-5]")) {
+            } else if ((keys.size() == 0 || keys.size() > 5) && Character.toString(e.getKeyChar()).matches("[1-5]")) {
                 keys.clear();
                 keys.add(Character.toString(e.getKeyChar()));
-            } else if (e.getKeyCode() == KeyEvent.VK_BACK_SPACE) {
-                keys.clear();
             }
+
+            if (e.getKeyCode() == KeyEvent.VK_BACK_SPACE && keys.size() > 0)
+                if (keys.size() < 6) keys.remove(keys.size() - 1);
+                else keys.clear();
 
             refreshText();
         }
     };
 
-    void winColor() {
-        new Thread(() -> {
-            while (Main.active.isVisible()) {
-                try {
-                    Cube.winColor = Color.YELLOW;
-                    repaint();
-                    TimeUnit.MILLISECONDS.sleep(500);
-
-                    Cube.winColor = Color.GREEN;
-                    repaint();
-                    TimeUnit.MILLISECONDS.sleep(500);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-        }).start();
-    }
-
-    void checkForWins() {
-        if (!redCube.checkAround()) {
-            win = 1;
-            setTurn(4);
-            winColor();
-        } else if (circles.stream().filter(c -> c.isOpen).count() >= 3) {
-            win = 2;
-            setTurn(4);
-            winColor();
-        }
-    }
-
     GamePanel(int status, JFrame host) {
+        Cube.selectedCube = null;
+        GreenCube.greenCubes = new ArrayList<>();
+
+        win = 0;
+
         if (Main.darkMode) setBackground(Color.black);
 
         this.status = status;
@@ -126,7 +107,6 @@ public class GamePanel extends JPanel {
 
         info.setOpaque(true);
         info.setBackground(getBackground());
-        info.setForeground(Main.darkMode ? Color.decode("#910000") : Color.RED);
 
         setTurn(turn);
 
@@ -140,8 +120,59 @@ public class GamePanel extends JPanel {
         refreshText();
     }
 
+    void winColor() {
+        new Thread(() -> {
+            while (Main.active.isVisible()) {
+                try {
+                    Cube.winColor = Color.YELLOW;
+                    repaint();
+                    TimeUnit.MILLISECONDS.sleep(500);
+
+                    Cube.winColor = Color.GREEN;
+                    repaint();
+                    TimeUnit.MILLISECONDS.sleep(500);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
+    }
+
+    void checkForWins() {
+        if (!isRedYellow) {
+            if (!redCube.checkAround()) {
+                win = 1;
+                setTurn(4);
+                winColor();
+            } else if (circles.stream().filter(c -> c.isOpen).count() >= 3) {
+                win = 2;
+                setTurn(4);
+                winColor();
+            }
+        }
+    }
+
+    void time() {
+        while (timeStarted) {
+            if (turn == 1) p2t--;
+            else p1t--;
+
+            refreshText();
+
+            try {
+                TimeUnit.SECONDS.sleep(1);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
     void refreshText() {
+        if (turn == 1) info.setForeground(Main.darkMode ? Color.LIGHT_GRAY : Color.BLACK);
+        else info.setForeground(Main.darkMode ? Main.darkerRed : Color.RED);
+
         String text = "";
+        String time = "";
 
         if (keys.size() == 0) text = "Bir sayı girin";
 
@@ -154,7 +185,22 @@ public class GamePanel extends JPanel {
 
         if (keys.size() == 3) text += " ... ";
 
-        info.setText(text + " - " + blackRepeat + "/" + waitingFor);
+        time += "P1: " + toMS(p1t) + " - P2: " + toMS(p2t);
+
+        if (isRedYellow) info.setText(text + " - " + yellowRepeat + "/" + yWaitingFor + " - " + time);
+        else info.setText(text + " - " + blackRepeat + "/" + waitingFor + " - " + time);
+    }
+
+    String toMS(int i) {
+        int m = i / 60;
+        int s = i % 60;
+
+        return wZero(m) + ":" + wZero(s);
+    }
+
+    String wZero(int i) {
+        if (Integer.toString(i).length() == 1) return "0" + i;
+        return Integer.toString(i);
     }
 
     void removeSelected() {
@@ -164,6 +210,13 @@ public class GamePanel extends JPanel {
     }
 
     void setTurn(int turn) {
+        /*
+        0: p1
+        1: p2
+        2: p1
+        3: p1
+         */
+
         this.turn = turn;
 
         Arrays.stream(getComponents()).filter(c -> c instanceof Cube).forEach(c -> ((Cube) c).selectable = 0);
@@ -175,18 +228,34 @@ public class GamePanel extends JPanel {
             Arrays.stream(getComponents()).filter(component -> component instanceof BlackCube).forEach(component -> ((Cube) component).selectable = 1);
         } else if (turn == 2 && (status != Main.MP || _team == 0)) {
             Arrays.stream(getComponents()).filter(component -> component instanceof BlackCube).forEach(component -> ((Cube) component).selectable = 2);
+        } else if (turn == 3 && (status != Main.MP || _team == 0)) {
+            Main.active.panel.canGoBlue = false;
+
+            if (yellowRepeat == waitingFor) {
+                redCube.og = redOldPos;
+                isRedYellow = false;
+                yellowRepeat = 0;
+                redCube.innerColor = Main.darkMode ? Main.darkerRed : Color.RED;
+
+                setTurn(1);
+            } else {
+                redCube.selectable = 1;
+                removeSelected();
+                redCube.select(false);
+            }
         }
 
         repaint();
     }
 
     int nextTurn() {
+        if (turn == 3) return 3;
         return (blackRepeat == waitingFor) ? 2 : ((turn == 1) ? 0 : 1);
     }
 
     Cube getCube(Grids g) {
         return (Cube) Arrays.stream(getComponents())
-                .filter(c -> c instanceof Cube && Grids.isEqual(g, ((Cube) c).g))
+                .filter(c -> c instanceof Cube && Grids.isEqual(g, ((Cube) c).og))
                 .findFirst()
                 .orElse(null);
     }
@@ -229,7 +298,7 @@ public class GamePanel extends JPanel {
                 int sh = h / 3;
 
                 component.setSize(sw, sh);
-                component.setLocation((c.g.x - 1) * w + (w / 2 - sw / 2), (c.g.y - 1) * h + (h / 2 - sh / 2) + 25);
+                component.setLocation((c.og.x - 1) * w + (w / 2 - sw / 2), (c.og.y - 1) * h + (h / 2 - sh / 2) + 25);
             } else if (component instanceof GridLabel) ((GridLabel) component).set();
         }
 

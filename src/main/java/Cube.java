@@ -6,25 +6,51 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.stream.IntStream;
 
+import static java.awt.event.MouseEvent.BUTTON1;
+
 public class Cube extends JPanel {
     public static final int a = 0, b = 1;
     static Cube selectedCube;
     static Color winColor;
-    Grids g;
+    Grids og;
     Color innerColor;
     Color outerColor;
     int selectable = 0;
     boolean selected = false, locked = false;
 
     Cube(Grids g, Color innerColor) {
-        this.g = g;
+        this.og = g;
         this.innerColor = innerColor;
 
         addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
-                if (Cube.this instanceof GreenCube) {
+                if (Cube.this instanceof GreenCube && e.getButton() == BUTTON1) {
                     greenSelect();
+                } else if (!Main.active.panel.isRedYellow && Cube.this instanceof BlueCube && selectedCube instanceof RedCube && (e.isControlDown() || e.getButton() == MouseEvent.BUTTON3)) {
+                    Main.active.panel.isRedYellow = true;
+                    Main.active.panel.repaint();
+                } else if (Main.active.panel.isRedYellow && Cube.this instanceof BlueCube && selectedCube instanceof RedCube && Main.active.panel.canGoBlue) {
+                    Main.active.panel.removeSelected();
+                    removeGreens();
+
+                    Main.active.panel.isRedYellow = false;
+                    Main.active.panel.yellowRepeat = 0;
+                    Main.active.panel.redCube.innerColor = Main.darkMode ? Main.darkerRed : Color.RED;
+
+                    Main.active.panel.redCube.og = og;
+                    og = Main.active.panel.redOldPos;
+
+                    Main.active.panel.yellowRepeat = Main.active.panel.yWaitingFor;
+
+                    Main.active.panel.setTurn(1);
+                    Main.active.panel.repaint();
+
+                    if (selectedCube instanceof RedCube && !Main.active.panel.isRedYellow) {
+                        for (Circle c : Main.active.panel.circles) {
+                            if (c.g.x == selectedCube.og.x && c.g.y == selectedCube.og.y) c.isOpen = true;
+                        }
+                    }
                 } else {
                     select(false);
                 }
@@ -56,23 +82,26 @@ public class Cube extends JPanel {
         if (selectedCube.selectable == 2) Main.active.panel.blackRepeat = 0;
         else if (selectedCube instanceof BlackCube) Main.active.panel.blackRepeat++;
 
-        selectedCube.g = g;
+        if (Main.active.panel.isRedYellow) Main.active.panel.yellowRepeat++;
 
-        if (selectedCube instanceof RedCube) {
+        selectedCube.og = og;
+
+        if (selectedCube instanceof RedCube && !Main.active.panel.isRedYellow) {
             for (Circle c : Main.active.panel.circles) {
-                if (c.g.x == selectedCube.g.x && c.g.y == selectedCube.g.y) c.isOpen = true;
+                if (c.g.x == selectedCube.og.x && c.g.y == selectedCube.og.y) c.isOpen = true;
             }
         }
 
-        Main.active.panel.removeSelected();
-        Main.active.panel.setTurn(Main.active.panel.nextTurn());
-        removeGreens();
-
-        String[] keys = {Integer.toString(g.x), Integer.toString(g.y), "-"};
+        String[] keys = {Integer.toString(og.x), Integer.toString(og.y), "-"};
         IntStream.rangeClosed(3, 5).forEach(i -> {
             if (Main.active.panel.keys.size() > i) Main.active.panel.keys.set(i, keys[i - 3]);
-            else Main.active.panel.keys.add(keys[i - 3]);
+            else
+                Main.active.panel.keys.add(keys[i - 3]);
         });
+
+        Main.active.panel.removeSelected();
+        removeGreens();
+        Main.active.panel.setTurn(Main.active.panel.nextTurn());
 
         Main.active.panel.checkForWins();
         Main.active.panel.refreshText();
@@ -80,6 +109,11 @@ public class Cube extends JPanel {
 
     void select(boolean viaKey) {
         if (selectable >= 1 && !locked) {
+            if (!Main.active.panel.timeStarted) {
+                Main.active.panel.timeStarted = true;
+                new Thread(Main.active.panel::time).start();
+            }
+
             removeGreens();
 
             for (Component component : Main.active.panel.getComponents()) {
@@ -88,11 +122,12 @@ public class Cube extends JPanel {
             selected = true;
             selectedCube = Cube.this;
 
-            if (Cube.this instanceof BlueCube || Cube.this instanceof BlackCube) moveCubes(a);
+            if (Cube.this instanceof BlueCube || Cube.this instanceof BlackCube || (Cube.this instanceof RedCube && Main.active.panel.isRedYellow))
+                moveCubes(a);
             else moveCubes(b);
 
             if (!viaKey)
-                Main.active.panel.keys = new ArrayList<>(Arrays.asList(Integer.toString(g.x), Integer.toString(g.y), "-"));
+                Main.active.panel.keys = new ArrayList<>(Arrays.asList(Integer.toString(og.x), Integer.toString(og.y), "-"));
             Main.active.panel.refreshText();
 
             Main.active.panel.repaint();
@@ -104,19 +139,26 @@ public class Cube extends JPanel {
         super.paintComponent(g);
 
         if (this instanceof GreenCube) {
-            g.setColor(Main.darkMode ? Color.decode("#009100") : Color.GREEN);
+            g.setColor(Main.darkMode ? Main.darkerGreen : Color.GREEN);
             g.fillRect(0, 0, getWidth(), getHeight());
         } else {
-            if (selectable == 1) outerColor = Main.darkMode ? Color.decode("#00918c") : Color.ORANGE;
-            else if (selectable == 2) outerColor = Main.darkMode ? Color.decode("#000091") : Color.BLUE;
+            if (selectable == 1) outerColor = Main.darkMode ? Main.darkerOrange : Color.ORANGE;
+            else if (selectable == 2) outerColor = Main.darkMode ? Main.darkerBlue : Color.BLUE;
             else outerColor = innerColor;
 
-            if (locked) outerColor = Main.darkMode ? Color.decode("#910000") : Color.RED;
-            if (selected) outerColor = Main.darkMode ? Color.decode("#009100") : Color.GREEN;
+            if (locked) outerColor = Main.darkMode ? Main.darkerRed : Color.RED;
+            if (selected) outerColor = Main.darkMode ? Main.darkerGreen : Color.GREEN;
 
             if ((GamePanel.win == 1 && this instanceof BlackCube) ||
                     (GamePanel.win == 2 && (this instanceof RedCube || this instanceof BlueCube)))
                 outerColor = winColor;
+
+            if (this instanceof RedCube && Main.active.panel.isRedYellow && Main.active.panel.turn != 3) {
+                outerColor = Main.darkMode ? Main.darkerYellow : Color.YELLOW;
+                innerColor = Main.darkMode ? Main.darkerYellow : Color.YELLOW;
+                Main.active.panel.setTurn(3);
+                Main.active.panel.redOldPos = this.og;
+            }
 
             g.setColor(outerColor);
             g.fillRect(0, 0, getWidth(), getHeight());
@@ -131,6 +173,10 @@ public class Cube extends JPanel {
     }
 
     boolean checkGrid(Grids g) {
+        if (Main.active.panel.getCube(g) instanceof BlueCube) {
+            Main.active.panel.canGoBlue = true;
+        }
+
         return Main.active.panel.getCube(g) == null && g.x <= 5 && g.x > 0 && g.y <= 5 && g.y > 0;
     }
 
@@ -139,7 +185,7 @@ public class Cube extends JPanel {
     }
 
     void moveCubes(int style) {
-        int mx = selectedCube.g.x, my = selectedCube.g.y;
+        int mx = selectedCube.og.x, my = selectedCube.og.y;
 
         if (style == a) {
             boolean[] directions = new boolean[8];
@@ -193,7 +239,7 @@ public class Cube extends JPanel {
     }
 
     boolean checkAround() {
-        int mx = g.x, my = g.y;
+        int mx = og.x, my = og.y;
 
         for (int x = -1; x < 2; x++) {
             for (int y = -1; y < 2; y++) {
@@ -207,31 +253,28 @@ public class Cube extends JPanel {
 }
 
 class GreenCube extends Cube {
-    static ArrayList<GreenCube> greenCubes = new ArrayList<>();
+    static ArrayList<GreenCube> greenCubes;
 
     GreenCube(Grids g) {
-        super(g, Main.darkMode ? Color.decode("#009100") : Color.GREEN);
+        super(g, Main.darkMode ? Main.darkerGreen : Color.GREEN);
         greenCubes.add(this);
     }
 }
 
 class BlackCube extends Cube {
-
     BlackCube(Grids g) {
         super(g, Main.darkMode ? Color.LIGHT_GRAY : Color.BLACK);
     }
 }
 
 class BlueCube extends Cube {
-
     BlueCube(Grids g) {
-        super(g, Main.darkMode ? Color.decode("#000091") : Color.BLUE);
+        super(g, Main.darkMode ? Main.darkerBlue : Color.BLUE);
     }
 }
 
 class RedCube extends Cube {
-
     RedCube(Grids g) {
-        super(g, Main.darkMode ? Color.decode("#910000") : Color.RED);
+        super(g, Main.darkMode ? Main.darkerRed : Color.RED);
     }
 }

@@ -25,7 +25,7 @@ public class GamePanel extends JPanel {
     boolean isRedYellow = false;
     boolean canGoBlue = false;
 
-    int p1t = 300, p2t = 300;
+    int p1t = 90, p2t = 90;
     boolean timeStarted;
 
     Grids redOldPos;
@@ -35,43 +35,49 @@ public class GamePanel extends JPanel {
     KeyAdapter keyAdapter = new KeyAdapter() {
         @Override
         public void keyPressed(KeyEvent e) {
-            if (keys.size() < 5) {
-                if (Character.toString(e.getKeyChar()).matches("[1-5]") && keys.size() != 2) {
-                    keys.add(Character.toString(e.getKeyChar()));
-                } else if (e.getKeyCode() == KeyEvent.VK_ENTER && keys.size() == 2) {
-                    Cube c = getCube(new Grids(Integer.parseInt(keys.get(0)), Integer.parseInt(keys.get(1))));
+            if (turn != 4) {
+                if (keys.size() < 5) {
+                    if (Character.toString(e.getKeyChar()).matches("[1-5]") && keys.size() != 2) {
+                        keys.add(Character.toString(e.getKeyChar()));
+                    } else if (e.getKeyCode() == KeyEvent.VK_ENTER && keys.size() == 2) {
+                        Cube c = getCube(new Grids(Integer.parseInt(keys.get(0)), Integer.parseInt(keys.get(1))));
 
-                    if (c == null || c instanceof GreenCube || c.selectable == 0 || c.locked) {
-                        removeSelected();
-                        keys.clear();
-                    } else {
-                        c.select(true);
-                        keys.add("-");
+                        if (c == null || c instanceof GreenCube || c.selectable == 0 || c.locked) {
+                            removeSelected();
+                            keys.clear();
+                        } else {
+                            c.select(true);
+                            keys.add("-");
+                        }
                     }
-                }
-            } else if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-                Cube c = getCube(new Grids(Integer.parseInt(keys.get(3)), Integer.parseInt(keys.get(4))));
+                } else if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+                    Cube c = getCube(new Grids(Integer.parseInt(keys.get(3)), Integer.parseInt(keys.get(4))));
 
-                if (c instanceof GreenCube) {
-                    c.greenSelect();
-                    keys.add("-");
-                } else if (redCube.selected && c instanceof BlueCube) {
-                    Main.active.panel.isRedYellow = true;
-                    Main.active.panel.repaint();
-                } else {
-                    keys.remove(2);
-                    keys.remove(3);
+                    if (c instanceof GreenCube) {
+                        c.greenSelect();
+                        if (!isRedYellow) keys.add("-");
+                    } else if (redCube.selected && c instanceof BlueCube) {
+                        if (!isRedYellow) isRedYellow = true;
+
+                        if (Main.active.panel.isRedYellow && Main.active.panel.canGoBlue) blueCube.rToB();
+
+                        Main.active.panel.repaint();
+                    } else {
+                        keys.remove(2);
+                        keys.remove(3);
+                    }
+                } else if ((keys.size() == 0 || keys.size() > 5) && Character.toString(e.getKeyChar()).matches("[1-5]")) {
+                    keys.clear();
+                    keys.add(Character.toString(e.getKeyChar()));
                 }
-            } else if ((keys.size() == 0 || keys.size() > 5) && Character.toString(e.getKeyChar()).matches("[1-5]")) {
-                keys.clear();
-                keys.add(Character.toString(e.getKeyChar()));
+
+                if (e.getKeyCode() == KeyEvent.VK_BACK_SPACE && keys.size() > 0)
+                    if (keys.size() < 6) {
+                        if (!isRedYellow || keys.size() > 3) keys.remove(keys.size() - 1);
+                    } else keys.clear();
+
+                refreshText();
             }
-
-            if (e.getKeyCode() == KeyEvent.VK_BACK_SPACE && keys.size() > 0)
-                if (keys.size() < 6) keys.remove(keys.size() - 1);
-                else keys.clear();
-
-            refreshText();
         }
     };
 
@@ -121,6 +127,8 @@ public class GamePanel extends JPanel {
     }
 
     void winColor() {
+        timeStarted = false;
+
         new Thread(() -> {
             while (Main.active.isVisible()) {
                 try {
@@ -159,10 +167,27 @@ public class GamePanel extends JPanel {
 
             refreshText();
 
-            try {
-                TimeUnit.SECONDS.sleep(1);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+            if (p1t == 0 || p2t == 0) {
+                removeSelected();
+                Cube.removeGreens();
+            }
+
+            if (p1t == 0) {
+                win = 1;
+                setTurn(4);
+                winColor();
+                timeStarted = false;
+            } else if (p2t == 0) {
+                win = 2;
+                setTurn(4);
+                winColor();
+                timeStarted = false;
+            } else {
+                try {
+                    TimeUnit.SECONDS.sleep(1);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
             }
         }
     }
@@ -174,7 +199,9 @@ public class GamePanel extends JPanel {
         String text = "";
         String time = "";
 
-        if (keys.size() == 0) text = "Bir sayı girin";
+
+        if (turn == 4) text = "Oyun Bitti";
+        else if (keys.size() == 0) text = "Bir sayı girin";
 
         if (keys.size() > 0) text += keys.get(0) + "x";
         if (keys.size() > 1) text += keys.get(1);
@@ -237,12 +264,19 @@ public class GamePanel extends JPanel {
                 yellowRepeat = 0;
                 redCube.innerColor = Main.darkMode ? Main.darkerRed : Color.RED;
 
+                keys.clear();
+                refreshText();
+
                 setTurn(1);
             } else {
                 redCube.selectable = 1;
                 removeSelected();
                 redCube.select(false);
             }
+        }
+        if (turn == 4) {
+            keys.clear();
+            refreshText();
         }
 
         repaint();

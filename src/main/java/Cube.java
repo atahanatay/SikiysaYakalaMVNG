@@ -31,26 +31,7 @@ public class Cube extends JPanel {
                     Main.active.panel.isRedYellow = true;
                     Main.active.panel.repaint();
                 } else if (Main.active.panel.isRedYellow && Cube.this instanceof BlueCube && selectedCube instanceof RedCube && Main.active.panel.canGoBlue) {
-                    Main.active.panel.removeSelected();
-                    removeGreens();
-
-                    Main.active.panel.isRedYellow = false;
-                    Main.active.panel.yellowRepeat = 0;
-                    Main.active.panel.redCube.innerColor = Main.darkMode ? Main.darkerRed : Color.RED;
-
-                    Main.active.panel.redCube.og = og;
-                    og = Main.active.panel.redOldPos;
-
-                    Main.active.panel.yellowRepeat = Main.active.panel.yWaitingFor;
-
-                    Main.active.panel.setTurn(1);
-                    Main.active.panel.repaint();
-
-                    if (selectedCube instanceof RedCube && !Main.active.panel.isRedYellow) {
-                        for (Circle c : Main.active.panel.circles) {
-                            if (c.g.x == selectedCube.og.x && c.g.y == selectedCube.og.y) c.isOpen = true;
-                        }
-                    }
+                    rToB();
                 } else {
                     select(false);
                 }
@@ -58,6 +39,36 @@ public class Cube extends JPanel {
         });
 
         repaint();
+    }
+
+    void rToB() {
+        Main.active.panel.removeSelected();
+        removeGreens();
+
+        Main.active.panel.isRedYellow = false;
+        Main.active.panel.yellowRepeat = 0;
+        Main.active.panel.redCube.innerColor = Main.darkMode ? Main.darkerRed : Color.RED;
+
+        Main.active.panel.redCube.og = og;
+        og = Main.active.panel.redOldPos;
+
+        Main.active.panel.yellowRepeat = Main.active.panel.yWaitingFor;
+
+        Main.active.panel.keys = new ArrayList<>(Arrays.asList(Integer.toString(og.x), Integer.toString(og.y), "-", Integer.toString(selectedCube.og.x), Integer.toString(selectedCube.og.y), "-"));
+        Main.active.panel.setTurn(1);
+
+        Main.active.panel.refreshText();
+        Main.active.panel.repaint();
+
+        checkForCircles();
+    }
+
+    private void checkForCircles() {
+        if (selectedCube instanceof RedCube && !Main.active.panel.isRedYellow) {
+            for (Circle c : Main.active.panel.circles) {
+                if (c.g.x == selectedCube.og.x && c.g.y == selectedCube.og.y) c.isOpen = true;
+            }
+        }
     }
 
     static void removeGreens() {
@@ -86,11 +97,7 @@ public class Cube extends JPanel {
 
         selectedCube.og = og;
 
-        if (selectedCube instanceof RedCube && !Main.active.panel.isRedYellow) {
-            for (Circle c : Main.active.panel.circles) {
-                if (c.g.x == selectedCube.og.x && c.g.y == selectedCube.og.y) c.isOpen = true;
-            }
-        }
+        checkForCircles();
 
         String[] keys = {Integer.toString(og.x), Integer.toString(og.y), "-"};
         IntStream.rangeClosed(3, 5).forEach(i -> {
@@ -98,6 +105,9 @@ public class Cube extends JPanel {
             else
                 Main.active.panel.keys.add(keys[i - 3]);
         });
+
+        if (Main.active.panel.isRedYellow)
+            Main.active.panel.keys.clear();
 
         Main.active.panel.removeSelected();
         removeGreens();

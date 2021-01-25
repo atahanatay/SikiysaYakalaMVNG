@@ -1,0 +1,11 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="SikiysaYakalaMVNG:jar">
+    <output-path>$USER_HOME$/Desktop/paylaşım</output-path>
+    <root id="archive" name="SikiysaYakalaMVNG.jar">
+      <element id="directory" name="META-INF">
+        <element id="file-copy" path="$USER_HOME$/Desktop/paylaşım/META-INF/MANIFEST.MF" />
+      </element>
+      <element id="module-output" name="SikiysaYakalaMVNG" />
+    </root>
+  </artifact>
+</component>

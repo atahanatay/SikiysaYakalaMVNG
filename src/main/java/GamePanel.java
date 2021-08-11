@@ -200,8 +200,8 @@ public class GamePanel extends JPanel {
         String time = "";
 
 
-        if (turn == 4) text = "Oyun Bitti";
-        else if (keys.size() == 0) text = "Bir sayı girin";
+        if (turn == 4) text = DT.getText(".game-gameover");
+        else if (keys.size() == 0) text = DT.getText(".game-enteranumber");
 
         if (keys.size() > 0) text += keys.get(0) + "x";
         if (keys.size() > 1) text += keys.get(1);

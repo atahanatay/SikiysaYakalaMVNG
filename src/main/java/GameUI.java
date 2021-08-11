@@ -6,21 +6,21 @@ public class GameUI extends JFrame {
     GamePanel panel;
 
     GameUI(int status) {
-        setTitle(status == Main.SP ? "Sıkıysa Yakala - Tek Oyunculu" : "Sıkıysa Yakala - Çok Oyunculu");
+        setTitle(DT.getText(status == Main.SP ? ".gameui-sp" : ".gameui-mp"));
         setContentPane(panel = new GamePanel(status, this));
 
         JMenuBar menuBar = new JMenuBar();
 
-        JMenu aboutMenu = new JMenu("Hakkında");
-        JMenu settingsMenu = new JMenu("Ayarlar");
+        JMenu aboutMenu = new JMenu(DT.getText(".gameui-about"));
+        JMenu settingsMenu = new JMenu(DT.getText(".gameui-settings"));
 
-        JMenuItem howToPlay = new JMenuItem("Nasıl Oynanır");
-        howToPlay.addActionListener(e -> createDialog("Nasıl Oynanır", "howtoplay.html"));
+        JMenuItem howToPlay = new JMenuItem(DT.getText(".gameui-htp"));
+        howToPlay.addActionListener(e -> createDialog(DT.getText(".gameui-htp"), "howtoplay.html"));
 
-        JMenuItem aboutGame = new JMenuItem("Oyun Hakkında");
-        aboutGame.addActionListener(e -> createDialog("Oyun Hakkında", "about.html"));
+        JMenuItem aboutGame = new JMenuItem(DT.getText(".gameui-aboutgame"));
+        aboutGame.addActionListener(e -> createDialog(DT.getText(".gameui-aboutgame"), "about.html"));
 
-        JMenuItem blackLimit = new JMenuItem("Siyah hareket limitini ayarla...");
+        JMenuItem blackLimit = new JMenuItem(DT.getText(".gameui-sbml"));
 
         aboutMenu.add(howToPlay);
         aboutMenu.add(aboutGame);

@@ -1,0 +1,20 @@
+.LANG TR
+.menu-title Sıkıysa Yakala V2
+.menu-logotext Sıkıysa Yakala
+.menu-sp Tek Bilgisayar
+.menu-mp İki Bilgisayar
+.menu-exit Çıkış
+.menu-darkmode Karanlık Mod
+.gameui-sp Sıkıysa Yakala - Tek Bilgisayar
+.gameui-mp Sıkıysa Yakala - İki Bilgisayar
+.gameui-about Hakkında
+.gameui-aboutgame Oyun Hakkında
+.gameui-settings Ayarlar
+.gameui-htp Nasıl Oynanır?
+.gameui-sbml Siyah hareket limitini ayarla...
+.game-gameover Oyun Bitti
+.game-enteranumber Bir sayı girin
+.mp-searchcomputer Bilgisayar Arama
+.mp-connect BAĞLAN
+.mp-host HOST
+*

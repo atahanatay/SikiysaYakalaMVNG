@@ -191,7 +191,7 @@ public class Cube extends JPanel {
     }
 
     boolean checkGridA(Grids g) {
-        return (Main.active.panel.getCube(g) == null || Main.active.panel.getCube(g) instanceof BlueCube) && g.x <= 5 && g.x > 0 && g.y <= 5 && g.y > 0;
+        return Main.active.panel.getCube(g) == null && g.x <= 5 && g.x > 0 && g.y <= 5 && g.y > 0;
     }
 
     void moveCubes(int style) {

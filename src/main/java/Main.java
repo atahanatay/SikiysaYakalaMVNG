@@ -2,11 +2,16 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import static javax.swing.GroupLayout.DEFAULT_SIZE;
 import static javax.swing.GroupLayout.PREFERRED_SIZE;
@@ -30,7 +35,7 @@ public class Main {
         }
     };
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws FileNotFoundException {
         //creating the menu
 
         try {
@@ -39,7 +44,20 @@ public class Main {
             e.printStackTrace();
         }
 
-        menuUI = new MenuUI("Sıkıysa Yakala V2");
+        String l = JOptionPane.showInputDialog("Language:");
+        if (l == null) System.exit(0);
+        DT.analyzeAll(l);
+
+        if (DT.searchForOverrides()) {
+            String lf = JOptionPane.showInputDialog("Using Overrides (-):");
+
+            List<String> lst = Arrays.stream(lf.split(" ")).map(s -> s.substring(s.indexOf("-") + 1)).collect(Collectors.toList());
+            Collections.reverse(lst);
+
+            if (lf != null && !lf.isEmpty()) DT.installOverrides(lst.toArray(new String[0]));
+        }
+
+        menuUI = new MenuUI(DT.getText(".menu-title"));
         menuUI.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         menuUI.setLocationRelativeTo(null);
         menuUI.setVisible(true);
@@ -51,12 +69,12 @@ public class Main {
         if (status == MP) {
             GridBagConstraints c = new GridBagConstraints();
 
-            JFrame lookUpUI = new JFrame("Bilgisayar Arama");
+            JFrame lookUpUI = new JFrame(DT.getText(".mp-searchcomputer"));
             JPanel lookUpUIPanel = new JPanel();
 
             JTextField name = new JTextField();
-            JButton con = new JButton("BAĞLAN");
-            JButton host = new JButton("HOST");
+            JButton con = new JButton(DT.getText(".mp-connect"));
+            JButton host = new JButton(DT.getText(".mp-host"));
 
             GroupLayout layout = new GroupLayout(lookUpUIPanel);
 

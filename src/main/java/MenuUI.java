@@ -2,12 +2,12 @@ import javax.swing.*;
 import java.awt.*;
 
 public class MenuUI extends JFrame {
-    JLabel logo = new JLabel("Sıkıysa Yakala");
+    JLabel logo = new JLabel(DT.getText(".menu-logotext"));
 
-    JButton sp = new JButton("Tek Bilgisayar");
-    JButton mp = new JButton("Çok Bilgisayar");
-    JButton exit = new JButton("Çıkış");
-    JToggleButton darkMode = new JToggleButton("Karanlık Mod");
+    JButton sp = new JButton(DT.getText(".menu-sp"));
+    JButton mp = new JButton(DT.getText(".menu-mp"));
+    JButton exit = new JButton(DT.getText(".menu-exit"));
+    JToggleButton darkMode = new JToggleButton(DT.getText(".menu-darkmode"));
 
     MenuUI(String title) {
         super(title);
@@ -48,9 +48,7 @@ public class MenuUI extends JFrame {
         sp.addActionListener(e -> Main.startGame(Main.SP));
         mp.addActionListener(e -> Main.startGame(Main.MP));
 
-        darkMode.addActionListener(e -> {
-            Main.darkMode = darkMode.isSelected();
-        });
+        darkMode.addActionListener(e -> Main.darkMode = darkMode.isSelected());
 
         pack();
     }

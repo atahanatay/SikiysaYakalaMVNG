@@ -47,7 +47,7 @@ public class Cube extends JPanel {
 
         Main.active.panel.isRedYellow = false;
         Main.active.panel.yellowRepeat = 0;
-        Main.active.panel.redCube.innerColor = Main.darkMode ? Main.darkerRed : Color.RED;
+        Main.active.panel.redCube.innerColor = Main.red;
 
         Main.active.panel.redCube.og = og;
         og = Main.active.panel.redOldPos;
@@ -149,23 +149,23 @@ public class Cube extends JPanel {
         super.paintComponent(g);
 
         if (this instanceof GreenCube) {
-            g.setColor(Main.darkMode ? Main.darkerGreen : Color.GREEN);
+            g.setColor(Main.green);
             g.fillRect(0, 0, getWidth(), getHeight());
         } else {
-            if (selectable == 1) outerColor = Main.darkMode ? Main.darkerOrange : Color.ORANGE;
-            else if (selectable == 2) outerColor = Main.darkMode ? Main.darkerBlue : Color.BLUE;
+            if (selectable == 1) outerColor = Main.orange;
+            else if (selectable == 2) outerColor = Main.blue;
             else outerColor = innerColor;
 
-            if (locked) outerColor = Main.darkMode ? Main.darkerRed : Color.RED;
-            if (selected) outerColor = Main.darkMode ? Main.darkerGreen : Color.GREEN;
+            if (locked) outerColor = Main.red;
+            if (selected) outerColor = Main.green;
 
             if ((GamePanel.win == 1 && this instanceof BlackCube) ||
                     (GamePanel.win == 2 && (this instanceof RedCube || this instanceof BlueCube)))
                 outerColor = winColor;
 
             if (this instanceof RedCube && Main.active.panel.isRedYellow && Main.active.panel.turn != 3) {
-                outerColor = Main.darkMode ? Main.darkerYellow : Color.YELLOW;
-                innerColor = Main.darkMode ? Main.darkerYellow : Color.YELLOW;
+                outerColor = Main.yellow;
+                innerColor = Main.yellow;
                 Main.active.panel.setTurn(3);
                 Main.active.panel.redOldPos = this.og;
             }
@@ -266,25 +266,25 @@ class GreenCube extends Cube {
     static ArrayList<GreenCube> greenCubes;
 
     GreenCube(Grids g) {
-        super(g, Main.darkMode ? Main.darkerGreen : Color.GREEN);
+        super(g, Main.green);
         greenCubes.add(this);
     }
 }
 
 class BlackCube extends Cube {
     BlackCube(Grids g) {
-        super(g, Main.darkMode ? Color.LIGHT_GRAY : Color.BLACK);
+        super(g, Main.black);
     }
 }
 
 class BlueCube extends Cube {
     BlueCube(Grids g) {
-        super(g, Main.darkMode ? Main.darkerBlue : Color.BLUE);
+        super(g, Main.blue);
     }
 }
 
 class RedCube extends Cube {
     RedCube(Grids g) {
-        super(g, Main.darkMode ? Main.darkerRed : Color.RED);
+        super(g, Main.red);
     }
 }

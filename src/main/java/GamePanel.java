@@ -81,13 +81,13 @@ public class GamePanel extends JPanel {
         }
     };
 
-    GamePanel(int status, JFrame host) {
+    GamePanel(int status, JFrame host, int team) {
+        _team = team;
+
         Cube.selectedCube = null;
         GreenCube.greenCubes = new ArrayList<>();
 
         win = 0;
-
-        if (Main.darkMode) setBackground(Color.black);
 
         this.status = status;
         this.host = host;
@@ -132,11 +132,11 @@ public class GamePanel extends JPanel {
         new Thread(() -> {
             while (Main.active.isVisible()) {
                 try {
-                    Cube.winColor = Color.YELLOW;
+                    Cube.winColor = Main.yellow;
                     repaint();
                     TimeUnit.MILLISECONDS.sleep(500);
 
-                    Cube.winColor = Color.GREEN;
+                    Cube.winColor = Main.green;
                     repaint();
                     TimeUnit.MILLISECONDS.sleep(500);
                 } catch (InterruptedException e) {
@@ -193,8 +193,8 @@ public class GamePanel extends JPanel {
     }
 
     void refreshText() {
-        if (turn == 1) info.setForeground(Main.darkMode ? Color.LIGHT_GRAY : Color.BLACK);
-        else info.setForeground(Main.darkMode ? Main.darkerRed : Color.RED);
+        if (turn == 1) info.setForeground(Main.black);
+        else info.setForeground(Main.red);
 
         String text = "";
         String time = "";
@@ -262,7 +262,7 @@ public class GamePanel extends JPanel {
                 redCube.og = redOldPos;
                 isRedYellow = false;
                 yellowRepeat = 0;
-                redCube.innerColor = Main.darkMode ? Main.darkerRed : Color.RED;
+                redCube.innerColor = Main.red;
 
                 keys.clear();
                 refreshText();
@@ -305,8 +305,6 @@ public class GamePanel extends JPanel {
         c2.setLocation(getWidth() - c2.getWidth() - 5, 5 + 25);
         c3.setLocation(5, getHeight() - c3.getHeight() - 5);
         c4.setLocation(getWidth() - c4.getWidth() - 5, getHeight() - c4.getHeight() - 5);
-
-        if (Main.darkMode) g.setColor(Color.LIGHT_GRAY);
 
         for (int i = 1; i <= 4; i++) {
             g.drawLine(i * w, 25, i * w, getHeight());

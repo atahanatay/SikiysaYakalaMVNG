@@ -1,4 +1,5 @@
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.*;
@@ -9,27 +10,40 @@ public class DT {
 
     static HashMap<String, String> texts;
     static HashMap<String, String> globals;
+    static HashMap<String, Boolean> configs;
+    static HashMap<String, Integer> values;
 
     static HashMap<String, String> overridedTexts;
     static HashMap<String, String> overridedGlobals;
+    static HashMap<String, Boolean> overridedConfigs;
+    static HashMap<String, Integer> overridedValues;
 
     static String langKeyO;
 
-    static List<File> overridePacks;
+    static ArrayList<InputStream> overridePacks = new ArrayList<>();
 
-    static boolean searchForOverrides() {
+    static void searchForOverrides() {
         File[] files = new File("./").listFiles();
         if (files != null)
-            overridePacks = Arrays.stream(files).filter(file -> file.getName().substring(file.getName().lastIndexOf(".") + 1).equals("skt")).collect(Collectors.toList());
+            overridePacks.addAll(Arrays.stream(files).filter(file -> file.getName().substring(file.getName().lastIndexOf(".") + 1).equals("skt")).map(file -> {
+                try {
+                    return new FileInputStream(file);
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                    return null;
+                }
+            }).collect(Collectors.toList()));
 
-        return overridePacks.size() != 0;
+        overridePacks.add(DT.class.getResourceAsStream("defaultoverrides.skt"));
     }
 
     static void installOverrides(String[] overrides) throws FileNotFoundException {
         overridedTexts = new HashMap<>();
         overridedGlobals = new HashMap<>();
+        overridedConfigs = new HashMap<>();
+        overridedValues = new HashMap<>();
 
-        for (File f : overridePacks) {
+        for (InputStream f : overridePacks) {
             for (String overrideKey : overrides) {
                 Scanner s = new Scanner(f);
                 boolean inOverride = false;
@@ -40,9 +54,13 @@ public class DT {
 
                     if (line.isEmpty()) continue;
 
-                    if (line.equals("*")) {
-                        if (inLang) inLang = false;
-                        else if (inOverride) inOverride = false;
+                    if (line.equals(".ENDLANG")) {
+                        inLang = false;
+                        continue;
+                    }
+
+                    if (line.equals(".ENDOVERRIDE")) {
+                        inOverride = false;
                         continue;
                     }
 
@@ -52,8 +70,23 @@ public class DT {
                         if (inLang) overridedTexts.put(lineFinal[0], lineFinal[1]);
 
                         if (lineFinal[0].equals(".GLOBAL")) {
-                            String[] globalFinal = lineFinal[1].split(" ", 1);
+                            String[] globalFinal = lineFinal[1].split(" ", 2);
                             overridedGlobals.put(globalFinal[0], globalFinal[1]);
+                        }
+
+                        if (lineFinal[0].equals(".CONFIG")) {
+                            String[] globalFinal = lineFinal[1].split(" ", 2);
+                            overridedConfigs.put(globalFinal[0], globalFinal[1].equals("true"));
+                        }
+
+                        if (lineFinal[0].equals(".VALUE")) {
+                            String[] globalFinal = lineFinal[1].split(" ", 2);
+                            overridedValues.put(globalFinal[0], Integer.parseInt(globalFinal[1]));
+                        }
+
+                        if (lineFinal[0].equals(".ALL")) {
+                            String[] globalFinal = lineFinal[1].split(" ", 2);
+                            overridedTexts.put(globalFinal[0], globalFinal[1]);
                         }
 
                         if (lineFinal[0].equals(".LANG") && lineFinal[1].equals(langKeyO)) inLang = true;
@@ -70,6 +103,8 @@ public class DT {
 
         texts = new HashMap<>();
         globals = new HashMap<>();
+        configs = new HashMap<>();
+        values = new HashMap<>();
 
         Scanner s = new Scanner(f);
         boolean inLang = false;
@@ -79,7 +114,7 @@ public class DT {
 
             if (line.isEmpty()) continue;
 
-            if (line.equals("*")) {
+            if (line.equals(".ENDLANG")) {
                 inLang = false;
                 continue;
             }
@@ -89,8 +124,23 @@ public class DT {
             if (inLang) texts.put(lineFinal[0], lineFinal[1]);
 
             if (lineFinal[0].equals(".GLOBAL")) {
-                String[] globalFinal = lineFinal[1].split(" ", 1);
+                String[] globalFinal = lineFinal[1].split(" ", 2);
                 globals.put(globalFinal[0], globalFinal[1]);
+            }
+
+            if (lineFinal[0].equals(".CONFIG")) {
+                String[] globalFinal = lineFinal[1].split(" ", 2);
+                configs.put(globalFinal[0], globalFinal[1].equals("true"));
+            }
+
+            if (lineFinal[0].equals(".VALUE")) {
+                String[] globalFinal = lineFinal[1].split(" ", 2);
+                values.put(globalFinal[0], Integer.parseInt(globalFinal[1]));
+            }
+
+            if (lineFinal[0].equals(".ALL")) {
+                String[] globalFinal = lineFinal[1].split(" ", 2);
+                texts.put(globalFinal[0], globalFinal[1]);
             }
 
             if (lineFinal[0].equals(".LANG") && lineFinal[1].equals(langKeyO)) inLang = true;
@@ -104,5 +154,20 @@ public class DT {
     static String getText(String key) {
         if (overridedTexts != null && overridedTexts.containsKey(key)) return overridedTexts.get(key);
         else return texts.getOrDefault(key, langKeyO + key);
+    }
+
+    static String getGlobal(String key) {
+        if (overridedGlobals != null && overridedGlobals.containsKey(key)) return overridedGlobals.get(key);
+        else return globals.getOrDefault(key, null);
+    }
+
+    static int getValue(String key) {
+        if (overridedValues != null && overridedValues.containsKey(key)) return overridedValues.get(key);
+        else return values.getOrDefault(key, null);
+    }
+
+    static boolean getConfig(String key) {
+        if (overridedConfigs != null && overridedConfigs.containsKey(key)) return overridedConfigs.get(key);
+        else return configs.getOrDefault(key, null);
     }
 }

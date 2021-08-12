@@ -5,9 +5,9 @@ import java.io.IOException;
 public class GameUI extends JFrame {
     GamePanel panel;
 
-    GameUI(int status) {
+    GameUI(int status, int team) {
         setTitle(DT.getText(status == Main.SP ? ".gameui-sp" : ".gameui-mp"));
-        setContentPane(panel = new GamePanel(status, this));
+        setContentPane(panel = new GamePanel(status, this, team));
 
         JMenuBar menuBar = new JMenuBar();
 

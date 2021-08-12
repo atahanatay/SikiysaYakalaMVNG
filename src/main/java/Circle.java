@@ -12,7 +12,7 @@ public class Circle extends JPanel {
 
     @Override
     protected void paintComponent(Graphics g) {
-        g.setColor(isOpen ? (Main.darkMode ? Main.darkerGreen : Color.GREEN) : (Main.darkMode ? Main.darkerRed : Color.RED));
+        g.setColor(isOpen ? Main.green : Main.red);
         g.fillOval(0, 0, getWidth(), getHeight());
     }
 }

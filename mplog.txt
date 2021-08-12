@@ -1,0 +1,8 @@
+1: t
+0: ok
+1: atahan
+0: ok
+0: t
+1: ok
+0: atahan
+1: ok

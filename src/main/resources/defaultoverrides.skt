@@ -1,0 +1,4 @@
+.OVERRIDE logmp
+.ALL .menu-title LOGGING MP
+.CONFIG .createmplog true
+.ENDOVERRIDE

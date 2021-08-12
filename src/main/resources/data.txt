@@ -1,10 +1,19 @@
+.GLOBAL .colororange #E09624
+.GLOBAL .colorred #D12F00
+.GLOBAL .colorblue #4621FF
+.GLOBAL .colorblack #000000
+.GLOBAL .colorgreen #29C702
+.GLOBAL .coloryellow #DEBF43
+.GLOBAL .colorgray #9C9C9C
+
+.CONFIG .createmplog false
+
 .LANG TR
-.menu-title Sıkıysa Yakala V2
-.menu-logotext Sıkıysa Yakala
+.menu-title -
+.menu-logotext LOGO
 .menu-sp Tek Bilgisayar
 .menu-mp İki Bilgisayar
 .menu-exit Çıkış
-.menu-darkmode Karanlık Mod
 .gameui-sp Sıkıysa Yakala - Tek Bilgisayar
 .gameui-mp Sıkıysa Yakala - İki Bilgisayar
 .gameui-about Hakkında
@@ -17,4 +26,24 @@
 .mp-searchcomputer Bilgisayar Arama
 .mp-connect BAĞLAN
 .mp-host HOST
-*
+.ENDLANG
+
+.LANG EN
+.menu-title -
+.menu-logotext LOGO
+.menu-sp Single Computer
+.menu-mp Two Computer
+.menu-exit Exit
+.gameui-sp Sıkıysa Yakala - Single Computer
+.gameui-mp Sıkıysa Yakala - Two Computer
+.gameui-about About
+.gameui-aboutgame About Game
+.gameui-settings Settings
+.gameui-htp How to play?
+.gameui-sbml Set black move limit...
+.game-gameover Game Over
+.game-enteranumber Press a number
+.mp-searchcomputer Lookup
+.mp-connect CONNECT
+.mp-host HOST
+.ENDLANG

@@ -5,8 +5,6 @@ import java.awt.event.WindowEvent;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Arrays;
 import java.util.Collections;
@@ -19,14 +17,15 @@ import static javax.swing.GroupLayout.PREFERRED_SIZE;
 public class Main {
     public static final int SP = 0;
     public static final int MP = 1;
-    public static final Color darkerBlue = Color.decode("#000091");
-    public static final Color darkerRed = Color.decode("#910000");
-    public static final Color darkerGreen = Color.decode("#009100");
-    public static final Color darkerOrange = Color.decode("#00918c");
-    public static final Color darkerYellow = Color.YELLOW.darker();
+    public static Color blue;
+    public static Color red;
+    public static Color green;
+    public static Color orange;
+    public static Color yellow;
+    public static Color black;
+    public static Color gray;
     static MenuUI menuUI;
     static GameUI active;
-    static boolean darkMode;
 
     static WindowAdapter exitAdapter = new WindowAdapter() {
         @Override
@@ -34,6 +33,16 @@ public class Main {
             menuUI.setVisible(true);
         }
     };
+
+    static void declareColors() {
+        blue = Color.decode(DT.getGlobal(".colorblue"));
+        red = Color.decode(DT.getGlobal(".colorred"));
+        green = Color.decode(DT.getGlobal(".colorgreen"));
+        orange = Color.decode(DT.getGlobal(".colororange"));
+        yellow = Color.decode(DT.getGlobal(".coloryellow"));
+        black = Color.decode(DT.getGlobal(".colorblack"));
+        gray = Color.decode(DT.getGlobal(".colorgray"));
+    }
 
     public static void main(String[] args) throws FileNotFoundException {
         //creating the menu
@@ -44,18 +53,20 @@ public class Main {
             e.printStackTrace();
         }
 
-        String l = JOptionPane.showInputDialog("Language:");
+        String l = JOptionPane.showInputDialog("Language:", "en");
         if (l == null) System.exit(0);
         DT.analyzeAll(l);
 
-        if (DT.searchForOverrides()) {
-            String lf = JOptionPane.showInputDialog("Using Overrides (-):");
+        DT.searchForOverrides();
 
-            List<String> lst = Arrays.stream(lf.split(" ")).map(s -> s.substring(s.indexOf("-") + 1)).collect(Collectors.toList());
-            Collections.reverse(lst);
+        String lf = JOptionPane.showInputDialog("Using Overrides (-):");
 
-            if (lf != null && !lf.isEmpty()) DT.installOverrides(lst.toArray(new String[0]));
-        }
+        List<String> lst = Arrays.stream(lf.split(" ")).map(s -> s.substring(s.indexOf("-") + 1)).collect(Collectors.toList());
+        Collections.reverse(lst);
+
+        if (lf != null && !lf.isEmpty()) DT.installOverrides(lst.toArray(new String[0]));
+
+        declareColors();
 
         menuUI = new MenuUI(DT.getText(".menu-title"));
         menuUI.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
@@ -118,61 +129,32 @@ public class Main {
 
             con.addActionListener(e -> {
                 //ipPane.add(new ComputerPanel("Connecting1", "192.168.1.1"));
-                connect(name.getText());
+                connect(name.getText(), lookUpUI);
             });
 
-            host.addActionListener(e -> host());
-        } else startSc(status);
-    }
-
-    private static void host() {
-        try {
-            msgBox("Hello", "<html><div style='text-align: center'><a>Bilgisayarların Bağlanması Bekleniyor</a><br><a>Ip Adresiniz: " + InetAddress.getLocalHost().getHostAddress() + "</a></div></html>");
-
-            ServerSocket s = new ServerSocket(42901, 0, InetAddress.getLocalHost());
-            System.out.println(s.isClosed());
-            System.out.println(s.getInetAddress());
-            //s.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+            host.addActionListener(e -> NetworkConnection.setupAsHost());
+        } else startSc(status, 0);
     }
 
     private static boolean isConnectable(InetAddress d) {
         try {
-            try (Socket s = new Socket(InetAddress.getLocalHost(), 42901)) {
-                s.connect(new InetSocketAddress(d, 42901), 5000);
-            }
-
+            Socket s = new Socket(d, 42901);
             return true;
-        } catch (IOException e) {
-            e.printStackTrace();
-
+        } catch (Exception e) {
             return false;
         }
     }
 
-    private static void connect(String ip) {
+    private static void connect(String ip, JFrame lookUpUI) {
         JDialog d = msgBox("Çok Oyunculu", "Ip adresi test ediliyor...");
 
         SwingUtilities.invokeLater(() -> {
             try {
-                InetAddress address = InetAddress.getByName(ip);
+                NetworkConnection.setupAsReceiver(ip);
+                d.dispose();
+                lookUpUI.dispose();
 
-                //Socket s = new Socket(ip, 42901);
-
-                System.out.println(InetAddress.getByName(ip));
-
-                if (isConnectable(address)) {
-                    d.dispose();
-
-                    String s = JOptionPane.showInputDialog(null, "Lütfen isminizi girin", "Çok Oyunculu", JOptionPane.PLAIN_MESSAGE);
-                    int i = JOptionPane.showConfirmDialog(null, s + " ismiyle,\n" + ip + " ip adresine sahip bilgisayara oyun isteği göndereceksiniz.\nDevam etmek istiyor musunuz?", "Çok Oyunculu", JOptionPane.YES_NO_OPTION, JOptionPane.PLAIN_MESSAGE);
-                } else {
-                    d.dispose();
-
-                    JOptionPane.showMessageDialog(null, "Ip adresine bağlanılamıyor", "Çok Oyunculu", JOptionPane.ERROR_MESSAGE);
-                }
+                startSc(MP, 0);
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -181,7 +163,7 @@ public class Main {
 
     }
 
-    private static JDialog msgBox(String a, String b) {
+    public static JDialog msgBox(String a, String b) {
         JDialog d = new JDialog((Frame) null, a);
 
         d.setPreferredSize(new Dimension(300, 100));
@@ -198,8 +180,8 @@ public class Main {
         return d;
     }
 
-    private static void startSc(int status) {
-        active = new GameUI(status);
+    public static void startSc(int status, int team) {
+        active = new GameUI(status, team);
         active.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
         active.setLocationRelativeTo(null);
         active.setVisible(true);

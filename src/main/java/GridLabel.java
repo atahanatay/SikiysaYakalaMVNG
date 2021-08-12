@@ -18,6 +18,6 @@ public class GridLabel extends JLabel {
     void set() {
         setSize(Main.active.panel.w / 2, 50);
         setLocation(Main.active.panel.w / 4 + g.x * Main.active.panel.w, (g.y + 1) * Main.active.panel.h - getHeight() + 25);
-        setForeground(Main.darkMode ? Color.LIGHT_GRAY : Color.GRAY);
+        setForeground(Main.gray);
     }
 }

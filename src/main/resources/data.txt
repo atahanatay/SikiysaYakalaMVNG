@@ -6,6 +6,16 @@
 .GLOBAL .coloryellow #DEBF43
 .GLOBAL .colorgray #9C9C9C
 
+.VALUE .redmove 1
+.VALUE .blackmove 0
+.VALUE .bluemove 0
+.VALUE .redyellowmove 0
+.VALUE .p1tinitial 90
+.VALUE .p2tinitial 90
+.VALUE .wfinitial 5
+.VALUE .yfinitial 5
+.VALUE .ylfinitial 3
+
 .CONFIG .createmplog false
 
 .LANG TR
@@ -21,6 +31,7 @@
 .gameui-settings Ayarlar
 .gameui-htp Nasıl Oynanır?
 .gameui-sbml Siyah hareket limitini ayarla...
+.gameui-restart Yeniden Başlat
 .game-gameover Oyun Bitti
 .game-enteranumber Bir sayı girin
 .mp-searchcomputer Bilgisayar Arama
@@ -41,6 +52,7 @@
 .gameui-settings Settings
 .gameui-htp How to play?
 .gameui-sbml Set black move limit...
+.gameui-restart Reset Game
 .game-gameover Game Over
 .game-enteranumber Press a number
 .mp-searchcomputer Lookup

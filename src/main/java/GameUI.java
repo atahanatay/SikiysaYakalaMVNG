@@ -22,11 +22,18 @@ public class GameUI extends JFrame {
 
         JMenuItem blackLimit = new JMenuItem(DT.getText(".gameui-sbml"));
 
+        JMenuItem restart = new JMenuItem(DT.getText(".gameui-restart"));
+        restart.addActionListener(e -> {
+            GameUI.this.dispose();
+            SwingUtilities.invokeLater(() -> Main.startGame(status));
+        });
+
+        settingsMenu.add(blackLimit);
+        settingsMenu.add(restart);
+        menuBar.add(settingsMenu);
         aboutMenu.add(howToPlay);
         aboutMenu.add(aboutGame);
         menuBar.add(aboutMenu);
-        settingsMenu.add(blackLimit);
-        menuBar.add(settingsMenu);
         setJMenuBar(menuBar);
 
         pack();
@@ -37,6 +44,8 @@ public class GameUI extends JFrame {
             JTextPane editorPane = new JTextPane();
             JScrollPane pane = new JScrollPane(editorPane);
             JDialog dialog = new JDialog((Frame) null);
+
+            dialog.setPreferredSize(new Dimension(800, 600));
 
             editorPane.setPage(getClass().getResource(filename));
             editorPane.setEditable(false);

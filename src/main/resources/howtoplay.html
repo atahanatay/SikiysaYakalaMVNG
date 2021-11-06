@@ -1,10 +1,74 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Nasıl Oynanır</title>
-</head>
-<body>
-
-</body>
+    <p>Oyun iki kişiyle oynanabilecek şekilde tasarlanmıştır. Oyunda, bir kırmızı, bir mavi, altı siyah taş bulunmaktadır. Bir oyuncu kırmızı ve mavi taşları yönetirken diğer oyuncu siyah taşları yönetir. Kırmızı ve mavi taşları oynatan kişi 1.oyuncu, siyah taşları oynatan kişi ise 2.oyuncudur.</p>
+    <p>1. oyuncunun amacı her köşeyi&nbsp;kırmızı&nbsp;taşla&nbsp;en az bir kere ziyaret etmektir. Hareket menzili kısa olduğu için mavi taşla istediği yere gidip sonra mavi taş ile kırmızı taşın yerini kurallı bir şekilde değiştirebilir. Mavi taşla ulaştığı köşeler sayılmaz.</p>
+    <p>2. oyuncunun amacı siyah taşları kullanarak kırmızının hareketini engellemektir. Kırmızı hareket edemeyecek hale gelince oyunu kazanır.</p>
+    <p>1. ve 2. oyuncu oyun başlamadan önce iki sayıya karar verirler;</p>
+    <ol start="1">
+        <li>1. oyuncunun kırmızı taşı çeşitli hareketler yaparak mavi taşa ulaşması için gereken hamle sınırı. (5 önerilir)</li>
+        <li>1. oyuncunu siyah taşlardan herhangi birinin yerini değiştirmesi için gereken hamle sayısı. (3 önerilir)</li>
+    </ol>
+    <h1>Oyun taşlarının yazıyla gösterimi:</h1>
+    <p>Yazılı alanlarda daha kolay anlaşılabilmesi için taşlara değerler verilmiştir;</p>
+    <code>+: Kırmızı taş</code><br>
+    <code>/: Mavi taş</code><br>
+    <code>0: Siyah taş</code><br>
+    <code>x: Gidilebilecek yerler (Yeşil taş)</code><br>
+    <code>~: örnek gidiş yolu</code><br>
+    <h1>Kırmızı taşın hareketi:</h1>
+    <p>Kırmızı taş, önünde bir engel olmadığı sürece, ileri, geri, sağ, sol, sağ çapraz ve sol çapraz yönlerine bir adım hareket edebilir. Mavi taşla belirli kurallar sınırında&nbsp;yer değiştirebilir.</p>
+    <code>_____________________</code><br>
+    <code>|___|___|___|___|___|</code><br>
+    <code>|___|_x_|_x_|_x_|___|</code><br>
+    <code>|___|_x_|_+_|_x_|___|</code><br>
+    <code>|___|_x_|_x_|_x_|___|</code><br>
+    <code>|___|___|___|___|___|</code><br>
+    <h1>Mavi taşın hareketi:</h1>
+    <p>Mavi taş, önünde bir engel olmadığı sürece&nbsp;her yöne istediği kadar ilerleyebilir. Kırmızı taşla belirli kurallar sınırında yer değiştirebilir.</p>
+    <code>_____________________</code><br>
+    <code>|_x_|___|_x_|___|_x_|</code><br>
+    <code>|___|_x_|_x_|_x_|___|</code><br>
+    <code>|_x_|_x_|_/_|_x_|_x_|</code><br>
+    <code>|___|_x_|_x_|_x_|___|</code><br>
+    <code>|_x_|___|_x_|___|_x_|</code><br>
+    <h1>Siyah taşların hareketi:</h1>
+    <p>Siyah taşların her biri, önünde bir engel olmadığı sürece&nbsp;istediği kadar ilerleyebilir.</p>
+    <code>_____________________</code><br>
+    <code>|_x_|___|_x_|___|_x_|</code><br>
+    <code>|___|_x_|_x_|_x_|___|</code><br>
+    <code>|_x_|_x_|_0_|_x_|_x_|</code><br>
+    <code>|___|_x_|_x_|_x_|___|</code><br>
+    <code>|_x_|___|_x_|___|_x_|</code><br>
+    <h1>Kırmızı taş ile mavi taşın yer değiştirmesi:</h1>
+    <p>Kırmızı taş, iki oyuncunun belirlediği kadar hamlede&nbsp;önünde bir engel olmadan her yöne istediği kadar giderek mavi taşa ulaşabiliyorsa yer değiştirebilir. Eğer yer değiştirmeye karar verirse;</p>
+    <ol start="1">
+        <li>İstediği zaman vazgeçebilir ve hamle yapmadan sıra 2. oyuncuya geçer.</li>
+        <li>Eğer 5 hamlede ulaşamazsa hamle yapmaz ve sıra 2.oyuncuya geçer.</li>
+    </ol>
+    <p>örnek:</p>
+    <code>_____________________</code><br>
+    <code>|___|___|___|___|___|</code><br>
+    <code>|___|_~_|_~_|_~_|_/_|</code><br>
+    <code>|___|_~_|_0_|_0_|___|</code><br>
+    <code>|___|_~_|_0_|___|___|</code><br>
+    <code>|___|_+_|___|___|___|</code><br>
+    <p>Bu örnekte oyuncu iki adımda mavi taşa ulaşabilir.</p>
+    <code>_____________________</code><br>
+    <code>|___|___|___|___|___|</code><br>
+    <code>|___|___|_+_|___|___|</code><br>
+    <code>|___|___|___|___|___|</code><br>
+    <code>|_0_|_0_|_0_|_0_|_0_|</code><br>
+    <code>|___|___|___|___|_/_|</code><br>
+    <p>Bu örnekte ise ulaşamaz.</p>
+    <h1>1. oyuncunun herhangi bir siyah taşın yerini değiştirmesi:</h1>
+    <p>1. oyuncu, iki oyuncunun belirlediği kadar hamle sonrasında&nbsp;herhangi bir siyah taşın yerini değiştirir.</p>
+    <p>Bu değişimden sonra;</p>
+    <ol start="1">
+        <li>1. oyuncunun sırası geçer.</li>
+        <li>Oynatılan siyah taş kilitlenmiş sayılır ve 2. oyuncunun sadece o hamlesine geçerli olarak bahsedilen taş oynatılamaz.</li>
+    </ol>
+    <h1>Kontroller</h1>
+    <p>CTRL+6&nbsp;: Geliştirici Modu</p>
+    <h3>Kırmızı Takım:</h3>
+    <p>CTRL + Mavi kareye tıklama&nbsp;: Kırmızı kare için mavi kareyle yer değiştirme isteği.</p>
 </html>

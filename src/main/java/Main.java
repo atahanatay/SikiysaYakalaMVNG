@@ -24,13 +24,19 @@ public class Main {
     public static Color yellow;
     public static Color black;
     public static Color gray;
+
+    public static boolean turnMenu = true;
+
     static MenuUI menuUI;
     static GameUI active;
 
     static WindowAdapter exitAdapter = new WindowAdapter() {
         @Override
         public void windowClosed(WindowEvent e) {
-            menuUI.setVisible(true);
+            if (turnMenu) {
+                menuUI.setVisible(true);
+                System.out.println("hey");
+            }
         }
     };
 
@@ -64,7 +70,7 @@ public class Main {
         List<String> lst = Arrays.stream(lf.split(" ")).map(s -> s.substring(s.indexOf("-") + 1)).collect(Collectors.toList());
         Collections.reverse(lst);
 
-        if (lf != null && !lf.isEmpty()) DT.installOverrides(lst.toArray(new String[0]));
+        if (!lf.isEmpty()) DT.installOverrides(lst.toArray(new String[0]));
 
         declareColors();
 
@@ -132,8 +138,8 @@ public class Main {
                 connect(name.getText(), lookUpUI);
             });
 
-            host.addActionListener(e -> NetworkConnection.setupAsHost());
-        } else startSc(status, 0);
+            host.addActionListener(e -> NetworkConnection.setupAsHost(lookUpUI));
+        } else startSc(SP, 0);
     }
 
     private static boolean isConnectable(InetAddress d) {
@@ -151,8 +157,10 @@ public class Main {
         SwingUtilities.invokeLater(() -> {
             try {
                 NetworkConnection.setupAsReceiver(ip);
+                turnMenu = false;
                 d.dispose();
                 lookUpUI.dispose();
+                turnMenu = true;
 
                 startSc(MP, 0);
             } catch (IOException e) {

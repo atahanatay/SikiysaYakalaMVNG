@@ -109,15 +109,18 @@ public class NetworkConnection {
     }
 
 
-    static void setupAsHost() {
+    static void setupAsHost(JFrame cl) {
         createLog();
         try {
             JDialog d = Main.msgBox("Hello", "<html><div style='text-align: center'><a>Bilgisayarların Bağlanması Bekleniyor</a><br><a>Ip Adresiniz: " + InetAddress.getLocalHost().getHostAddress() + "</a></div></html>");
 
             SwingUtilities.invokeLater(() -> {
                 hostLookup();
-                Main.startSc(Main.MP, 1);
+                Main.turnMenu = false;
                 d.dispose();
+                cl.dispose();
+                Main.turnMenu = true;
+                Main.startSc(Main.MP, 1);
             });
         } catch (IOException e) {
             e.printStackTrace();

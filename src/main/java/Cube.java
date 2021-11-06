@@ -28,8 +28,11 @@ public class Cube extends JPanel {
                 if (Cube.this instanceof GreenCube && e.getButton() == BUTTON1) {
                     greenSelect();
                 } else if (!Main.active.panel.isRedYellow && Cube.this instanceof BlueCube && selectedCube instanceof RedCube && (e.isControlDown() || e.getButton() == MouseEvent.BUTTON3)) {
-                    Main.active.panel.isRedYellow = true;
-                    Main.active.panel.repaint();
+                    if (Main.active.panel.yellowLimit >= Main.active.panel.yellowLimitFor) {
+                        Main.active.panel.isRedYellow = true;
+                        Main.active.panel.repaint();
+                        Main.active.panel.yellowLimit = 0;
+                    }
                 } else if (Main.active.panel.isRedYellow && Cube.this instanceof BlueCube && selectedCube instanceof RedCube && Main.active.panel.canGoBlue) {
                     rToB();
                 } else {
@@ -41,18 +44,25 @@ public class Cube extends JPanel {
         repaint();
     }
 
+    static void removeGreens() {
+        for (GreenCube greenCube : GreenCube.greenCubes) {
+            Main.active.panel.remove(greenCube);
+        }
+
+        GreenCube.greenCubes.clear();
+        Main.active.panel.revalidate();
+        Main.active.panel.repaint();
+    }
+
     void rToB() {
         Main.active.panel.removeSelected();
         removeGreens();
 
         Main.active.panel.isRedYellow = false;
-        Main.active.panel.yellowRepeat = 0;
         Main.active.panel.redCube.innerColor = Main.red;
 
         Main.active.panel.redCube.og = og;
         og = Main.active.panel.redOldPos;
-
-        Main.active.panel.yellowRepeat = Main.active.panel.yWaitingFor;
 
         Main.active.panel.keys = new ArrayList<>(Arrays.asList(Integer.toString(og.x), Integer.toString(og.y), "-", Integer.toString(selectedCube.og.x), Integer.toString(selectedCube.og.y), "-"));
         Main.active.panel.setTurn(1);
@@ -60,6 +70,7 @@ public class Cube extends JPanel {
         Main.active.panel.refreshText();
         Main.active.panel.repaint();
 
+        Main.active.panel.canGoBlue = false;
         checkForCircles();
     }
 
@@ -69,16 +80,6 @@ public class Cube extends JPanel {
                 if (c.g.x == selectedCube.og.x && c.g.y == selectedCube.og.y) c.isOpen = true;
             }
         }
-    }
-
-    static void removeGreens() {
-        for (GreenCube greenCube : GreenCube.greenCubes) {
-            Main.active.panel.remove(greenCube);
-        }
-
-        GreenCube.greenCubes.clear();
-        Main.active.panel.revalidate();
-        Main.active.panel.repaint();
     }
 
     void greenSelect() {
@@ -92,6 +93,8 @@ public class Cube extends JPanel {
 
         if (selectedCube.selectable == 2) Main.active.panel.blackRepeat = 0;
         else if (selectedCube instanceof BlackCube) Main.active.panel.blackRepeat++;
+        else if ((selectedCube instanceof RedCube || selectedCube instanceof BlueCube) && !Main.active.panel.isRedYellow && Main.active.panel.yellowLimit < Main.active.panel.yellowLimitFor)
+            Main.active.panel.yellowLimit++;
 
         if (Main.active.panel.isRedYellow) Main.active.panel.yellowRepeat++;
 
@@ -132,9 +135,10 @@ public class Cube extends JPanel {
             selected = true;
             selectedCube = Cube.this;
 
-            if (Cube.this instanceof BlueCube || Cube.this instanceof BlackCube || (Cube.this instanceof RedCube && Main.active.panel.isRedYellow))
-                moveCubes(a);
-            else moveCubes(b);
+            if (Cube.this instanceof RedCube && Main.active.panel.isRedYellow) moveCubes(DT.getValue(".redyellowmove"));
+            else if (Cube.this instanceof BlackCube) moveCubes(DT.getValue(".blackmove"));
+            else if (Cube.this instanceof BlueCube) moveCubes(DT.getValue(".bluemove"));
+            else if (Cube.this instanceof RedCube) moveCubes(DT.getValue(".redmove"));
 
             if (!viaKey)
                 Main.active.panel.keys = new ArrayList<>(Arrays.asList(Integer.toString(og.x), Integer.toString(og.y), "-"));

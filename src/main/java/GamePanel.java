@@ -20,12 +20,13 @@ public class GamePanel extends JPanel {
     int status;
     int w, h;
     int turn = 0;
-    int blackRepeat = 0, waitingFor = 5, yellowRepeat = 0, yWaitingFor = 5;
+    int blackRepeat = 0, waitingFor = DT.getValue(".wfinitial"), yellowLimitFor = DT.getValue(".ylfinitial"), yellowLimit = yellowLimitFor;
+    int yellowRepeat = 0, yWaitingFor = DT.getValue(".yfinitial");
     int _team;
     boolean isRedYellow = false;
     boolean canGoBlue = false;
 
-    int p1t = 90, p2t = 90;
+    int p1t = DT.getValue(".p1tinitial"), p2t = DT.getValue(".p2tinitial");
     boolean timeStarted;
 
     Grids redOldPos;
@@ -114,7 +115,6 @@ public class GamePanel extends JPanel {
         info.setOpaque(true);
         info.setBackground(getBackground());
 
-        setTurn(turn);
 
         circles.add(c1);
         circles.add(c2);
@@ -124,6 +124,8 @@ public class GamePanel extends JPanel {
         for (Circle c : circles) add(c);
 
         refreshText();
+
+        setTurn(turn);
     }
 
     void winColor() {
@@ -214,8 +216,10 @@ public class GamePanel extends JPanel {
 
         time += "P1: " + toMS(p1t) + " - P2: " + toMS(p2t);
 
-        if (isRedYellow) info.setText(text + " - " + yellowRepeat + "/" + yWaitingFor + " - " + time);
-        else info.setText(text + " - " + blackRepeat + "/" + waitingFor + " - " + time);
+        info.setText(text + " - X:" + yellowLimit + "/" + yellowLimitFor);
+
+        if (isRedYellow) info.setText(info.getText() + " - Y:" + yellowRepeat + "/" + yWaitingFor + " - " + time);
+        else info.setText(info.getText() + " - Y:" + blackRepeat + "/" + waitingFor + " - " + time);
     }
 
     String toMS(int i) {
@@ -236,6 +240,13 @@ public class GamePanel extends JPanel {
         Cube.removeGreens();
     }
 
+    void applyMP(String command) {
+        String[] cmd = command.trim().split(" ");
+        int[] cmdNum = Arrays.stream(cmd).mapToInt(Integer::parseInt).toArray();
+
+        getCube(new Grids(cmdNum[0], cmdNum[1])).og = new Grids(cmdNum[2], cmdNum[3]);
+    }
+
     void setTurn(int turn) {
         /*
         0: p1
@@ -245,6 +256,14 @@ public class GamePanel extends JPanel {
          */
 
         this.turn = turn;
+
+        if (status == Main.MP) {
+            if (_team == 0) {
+                if (turn == 1) applyMP(NetworkConnection.getPackage());
+            } else if (_team == 1) {
+                if (turn == 0 || turn == 2 || turn == 3) applyMP(NetworkConnection.getPackage());
+            }
+        }
 
         Arrays.stream(getComponents()).filter(c -> c instanceof Cube).forEach(c -> ((Cube) c).selectable = 0);
 
@@ -258,7 +277,7 @@ public class GamePanel extends JPanel {
         } else if (turn == 3 && (status != Main.MP || _team == 0)) {
             Main.active.panel.canGoBlue = false;
 
-            if (yellowRepeat == waitingFor) {
+            if (yellowRepeat == yWaitingFor) {
                 redCube.og = redOldPos;
                 isRedYellow = false;
                 yellowRepeat = 0;
@@ -338,10 +357,5 @@ public class GamePanel extends JPanel {
         info.setSize(getWidth(), 25);
 
         revalidate();
-    }
-
-    void sendPackage() {
-        //for multiplayer send
-        //black repeat, cube locations...
     }
 }

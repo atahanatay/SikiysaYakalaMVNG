@@ -37,7 +37,7 @@ public class DT {
         overridePacks.add(DT.class.getResourceAsStream("defaultoverrides.skt"));
     }
 
-    static void installOverrides(String[] overrides) throws FileNotFoundException {
+    static void installOverrides(String[] overrides) {
         overridedTexts = new HashMap<>();
         overridedGlobals = new HashMap<>();
         overridedConfigs = new HashMap<>();

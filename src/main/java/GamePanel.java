@@ -26,6 +26,8 @@ public class GamePanel extends JPanel {
     boolean isRedYellow = false;
     boolean canGoBlue = false;
 
+    volatile boolean turnMpOpp = false;
+
     int p1t = DT.getValue(".p1tinitial"), p2t = DT.getValue(".p2tinitial");
     boolean timeStarted;
 
@@ -115,7 +117,6 @@ public class GamePanel extends JPanel {
         info.setOpaque(true);
         info.setBackground(getBackground());
 
-
         circles.add(c1);
         circles.add(c2);
         circles.add(c3);
@@ -125,7 +126,16 @@ public class GamePanel extends JPanel {
 
         refreshText();
 
-        setTurn(turn);
+        if (status == Main.SP || _team == 0) setTurn(turn);
+        else {
+            SwingUtilities.invokeLater(() -> {
+                if (NetworkConnection.getPackage().equals("start")) {
+                    timeStarted = true;
+                    new Thread(this::time).start();
+                    setTurn(turn);
+                }
+            });
+        }
     }
 
     void winColor() {
@@ -214,12 +224,18 @@ public class GamePanel extends JPanel {
 
         if (keys.size() == 3) text += " ... ";
 
+        if (turnMpOpp) text = "Waiting For Opposite...";
+
         time += "P1: " + toMS(p1t) + " - P2: " + toMS(p2t);
 
-        info.setText(text + " - X:" + yellowLimit + "/" + yellowLimitFor);
+        String lastText = text + " - X:" + yellowLimit + "/" + yellowLimitFor;
 
-        if (isRedYellow) info.setText(info.getText() + " - Y:" + yellowRepeat + "/" + yWaitingFor + " - " + time);
-        else info.setText(info.getText() + " - Y:" + blackRepeat + "/" + waitingFor + " - " + time);
+        info.setText(lastText);
+
+        if (isRedYellow) lastText += " - Y:" + yellowRepeat + "/" + yWaitingFor + " - " + time;
+        else lastText += " - Y:" + blackRepeat + "/" + waitingFor + " - " + time;
+
+        info.setText(lastText);
     }
 
     String toMS(int i) {
@@ -241,10 +257,24 @@ public class GamePanel extends JPanel {
     }
 
     void applyMP(String command) {
-        String[] cmd = command.trim().split(" ");
-        int[] cmdNum = Arrays.stream(cmd).mapToInt(Integer::parseInt).toArray();
+        if (command.equals("rtb")) {
+            //TODO red to blue
+            Grids rcOld = redCube.og;
+            redCube.og = blueCube.og;
+            blueCube.og = rcOld;
+        } else {
+            String[] cmd = command.trim().split(" ");
+            int[] cmdNum = Arrays.stream(cmd).mapToInt(Integer::parseInt).toArray();
 
-        getCube(new Grids(cmdNum[0], cmdNum[1])).og = new Grids(cmdNum[2], cmdNum[3]);
+            getCube(new Grids(cmdNum[0], cmdNum[1])).og = new Grids(cmdNum[2], cmdNum[3]);
+        }
+
+        for (Circle c : circles) {
+            if (c.g.x == redCube.og.x && c.g.y == redCube.og.y) c.isOpen = true;
+        }
+
+        checkForWins();
+        setTurn(nextTurn());
     }
 
     void setTurn(int turn) {
@@ -257,13 +287,23 @@ public class GamePanel extends JPanel {
 
         this.turn = turn;
 
+        turnMpOpp = false;
+
         if (status == Main.MP) {
             if (_team == 0) {
-                if (turn == 1) applyMP(NetworkConnection.getPackage());
+                if (turn == 1) {
+                    new Thread(() -> applyMP(NetworkConnection.getPackage())).start();
+                    turnMpOpp = true;
+                }
             } else if (_team == 1) {
-                if (turn == 0 || turn == 2 || turn == 3) applyMP(NetworkConnection.getPackage());
+                if (turn == 0 || turn == 2 || turn == 3) {
+                    new Thread(() -> applyMP(NetworkConnection.getPackage())).start();
+                    turnMpOpp = true;
+                }
             }
         }
+
+        refreshText();
 
         Arrays.stream(getComponents()).filter(c -> c instanceof Cube).forEach(c -> ((Cube) c).selectable = 0);
 

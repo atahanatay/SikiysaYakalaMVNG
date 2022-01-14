@@ -4,8 +4,7 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.net.InetAddress;
-import java.net.Socket;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -25,18 +24,24 @@ public class Main {
     public static Color black;
     public static Color gray;
 
-    public static boolean turnMenu = true;
+    public static volatile boolean turnMenu = true;
 
     static MenuUI menuUI;
     static GameUI active;
+
+    static volatile ArrayList<String> msgList = new ArrayList<>();
+
+    static JDialog jdt = null;
+    static JTextArea jdt_log = null;
 
     static WindowAdapter exitAdapter = new WindowAdapter() {
         @Override
         public void windowClosed(WindowEvent e) {
             if (turnMenu) {
+                System.out.println(e.getWindow());
                 menuUI.setVisible(true);
                 System.out.println("hey");
-            }
+            } else turnMenu = true;
         }
     };
 
@@ -74,22 +79,49 @@ public class Main {
 
         declareColors();
 
+        if (DT.getConfig(".loglastmsg")) {
+            jdt_log = new JTextArea();
+            jdt_log.setEditable(false);
+
+            JScrollPane __log = new JScrollPane(jdt_log);
+
+            jdt = new JDialog((Frame) null, "_MP LOG");
+            jdt.setVisible(true);
+            jdt.add(__log, BorderLayout.CENTER);
+            jdt.setPreferredSize(new Dimension(400, 700));
+            jdt.pack();
+            jdt.setVisible(true);
+
+            mpLogRefresh();
+        }
+
         menuUI = new MenuUI(DT.getText(".menu-title"));
         menuUI.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         menuUI.setLocationRelativeTo(null);
         menuUI.setVisible(true);
     }
 
+    public static void mpLogRefresh() {
+        if (jdt != null) {
+            StringBuilder text = new StringBuilder("LOGGING MP...\n");
+
+            for (String s : msgList) {
+                text.append(s).append("\n");
+            }
+
+            jdt_log.setText(text.toString());
+        }
+    }
+
     public static void startGame(int status) {
         menuUI.dispose();
 
         if (status == MP) {
-            GridBagConstraints c = new GridBagConstraints();
-
             JFrame lookUpUI = new JFrame(DT.getText(".mp-searchcomputer"));
             JPanel lookUpUIPanel = new JPanel();
 
             JTextField name = new JTextField();
+
             JButton con = new JButton(DT.getText(".mp-connect"));
             JButton host = new JButton(DT.getText(".mp-host"));
 
@@ -142,27 +174,19 @@ public class Main {
         } else startSc(SP, 0);
     }
 
-    private static boolean isConnectable(InetAddress d) {
-        try {
-            Socket s = new Socket(d, 42901);
-            return true;
-        } catch (Exception e) {
-            return false;
-        }
-    }
-
     private static void connect(String ip, JFrame lookUpUI) {
         JDialog d = msgBox("Çok Oyunculu", "Ip adresi test ediliyor...");
 
         SwingUtilities.invokeLater(() -> {
             try {
-                NetworkConnection.setupAsReceiver(ip);
-                turnMenu = false;
-                d.dispose();
-                lookUpUI.dispose();
-                turnMenu = true;
+                if (NetworkConnection.setupAsReceiver(ip)) {
+                    turnMenu = false;
+                    lookUpUI.dispose();
 
-                startSc(MP, 0);
+                    startSc(MP, 0);
+                }
+
+                d.dispose();
             } catch (IOException e) {
                 e.printStackTrace();
             }

@@ -17,6 +17,7 @@
 .VALUE .ylfinitial 3
 
 .CONFIG .createmplog false
+.CONFIG .loglastmsg false
 
 .LANG TR
 .menu-title -

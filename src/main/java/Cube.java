@@ -64,6 +64,8 @@ public class Cube extends JPanel {
         Main.active.panel.redCube.og = og;
         og = Main.active.panel.redOldPos;
 
+        NetworkConnection.sendPackage("rtb");
+
         Main.active.panel.keys = new ArrayList<>(Arrays.asList(Integer.toString(og.x), Integer.toString(og.y), "-", Integer.toString(selectedCube.og.x), Integer.toString(selectedCube.og.y), "-"));
         Main.active.panel.setTurn(1);
 
@@ -98,6 +100,9 @@ public class Cube extends JPanel {
 
         if (Main.active.panel.isRedYellow) Main.active.panel.yellowRepeat++;
 
+        if (Main.active.panel.status == Main.MP && !Main.active.panel.isRedYellow)
+            NetworkConnection.sendPackage(String.format("%d %d %d %d", selectedCube.og.x, selectedCube.og.y, og.x, og.y));
+
         selectedCube.og = og;
 
         checkForCircles();
@@ -114,17 +119,26 @@ public class Cube extends JPanel {
 
         Main.active.panel.removeSelected();
         removeGreens();
-        Main.active.panel.setTurn(Main.active.panel.nextTurn());
 
         Main.active.panel.checkForWins();
+        Main.active.panel.setTurn(Main.active.panel.nextTurn());
+
         Main.active.panel.refreshText();
     }
 
     void select(boolean viaKey) {
         if (selectable >= 1 && !locked) {
             if (!Main.active.panel.timeStarted) {
-                Main.active.panel.timeStarted = true;
-                new Thread(Main.active.panel::time).start();
+                if (Main.active.panel.status == Main.SP) {
+                    Main.active.panel.timeStarted = true;
+                    new Thread(Main.active.panel::time).start();
+                } else {
+                    if (Main.active.panel._team == 0) {
+                        Main.active.panel.timeStarted = true;
+                        new Thread(Main.active.panel::time).start();
+                        NetworkConnection.sendPackage("start");
+                    }
+                }
             }
 
             removeGreens();

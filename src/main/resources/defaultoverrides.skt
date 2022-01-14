@@ -2,3 +2,8 @@
 .ALL .menu-title LOGGING MP
 .CONFIG .createmplog true
 .ENDOVERRIDE
+
+.OVERRIDE logtxt
+.ALL .menu-title LOGGING MP TXT
+.CONFIG .loglastmsg true
+.ENDOVERRIDE

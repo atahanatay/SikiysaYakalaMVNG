@@ -22,9 +22,9 @@ public class NetworkConnection {
     static void createLog() {
         if (DT.getConfig(".createmplog")) {
             try {
-                f.createNewFile();
+                if (!f.createNewFile()) throw new Exception("File could not be created.");
                 fw = new FileWriter(f, true);
-            } catch (IOException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }
@@ -51,6 +51,9 @@ public class NetworkConnection {
 
     static void sendPackage(String pack) {
         writer.println(pack);
+        Main.msgList.add("S: " + pack);
+        Main.mpLogRefresh();
+
         String s = scanner.nextLine();
 
         putLog(pack, 0);
@@ -61,8 +64,10 @@ public class NetworkConnection {
         String result = scanner.nextLine();
         writer.println("continue");
 
+        Main.msgList.add("G: " + result);
+        Main.mpLogRefresh();
         putLog(result, 1);
-        putLog("ok", 0);
+        putLog("continue", 0);
 
         return result;
     }
@@ -81,12 +86,11 @@ public class NetworkConnection {
             return true;
         } catch (Exception e) {
             e.printStackTrace();
-            Main.msgBox("Hata", "Bağlanılamadı");
             return false;
         }
     }
 
-    static void setupAsReceiver(String ip) throws UnknownHostException {
+    static boolean setupAsReceiver(String ip) throws UnknownHostException {
         createLog();
         try {
             if (isConnectable(ip)) {
@@ -99,13 +103,16 @@ public class NetworkConnection {
                 sendPackage(s);
             } else {
                 JOptionPane.showMessageDialog(null, "Ip adresine bağlanılamıyor", "Çok Oyunculu", JOptionPane.ERROR_MESSAGE);
+                return false;
             }
         } catch (IOException e) {
             e.printStackTrace();
+            return false;
         }
 
         System.out.println("test");
         endLog();
+        return true;
     }
 
 
@@ -116,10 +123,11 @@ public class NetworkConnection {
 
             SwingUtilities.invokeLater(() -> {
                 hostLookup();
+
                 Main.turnMenu = false;
                 d.dispose();
                 cl.dispose();
-                Main.turnMenu = true;
+
                 Main.startSc(Main.MP, 1);
             });
         } catch (IOException e) {
